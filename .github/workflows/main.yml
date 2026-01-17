@@ -1,0 +1,30 @@
+name: Android APK Build
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Extract ZIP
+        run: |
+          mkdir -p build_dir
+          unzip -o *.zip -d build_dir
+
+      - name: Set up JDK 11 # Eski kütüphaneler için 11 daha uyumludur
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant Permission
+        run: |
+          find build_dir -name "gradlew" -exec chmod +x {} +
+
+      - name: Build with Gradle
+        run: |
+          GRADLEW_PATH=$(find build_dir -name "gradlew" | head -n 1)
+          cd $(dirname $GRADLEW_PATH)
+          # Hataları görmezden gelip devam etmeyi denemesi için --continue ekledik
+          ./gradlew assembleDebug --stacktrace
